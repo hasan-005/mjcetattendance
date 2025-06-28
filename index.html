@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Attendance Portal - MJ College</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", sans-serif;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+      background: transparent;
+      position: relative;
+    }
+
+    #vanta-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 30px 25px;
+      border-radius: 15px;
+      box-shadow: 0 0 25px rgba(255,255,255,0.2);
+      max-width: 400px;
+      width: 90%;
+      backdrop-filter: blur(6px);
+    }
+
+    .logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      margin-bottom: 15px;
+    }
+
+    .heading {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #002b80; /* Dark blue */
+    }
+
+    h1 {
+      margin-bottom: 10px;
+      font-size: 22px;
+    }
+
+    h3 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      font-weight: normal;
+      font-size: 16px;
+      color: #ccc;
+    }
+
+    h4 {
+      margin-top: 25px;
+      margin-bottom: 10px;
+      font-size: 18px;
+      color: #ffc107;
+    }
+
+    a {
+      display: block;
+      color: #00d9ff;
+      text-decoration: none;
+      margin: 6px 0;
+      font-weight: bold;
+      transition: all 0.3s ease-in-out;
+    }
+
+    a:hover {
+      text-decoration: underline;
+      color: #ffb300;
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+  <div id="vanta-bg"></div>
+
+  <div class="container">
+    <img
+      src="https://is1-ssl.mzstatic.com/image/thumb/PurpleSource114/v4/81/02/78/810278de-4ab2-33c8-0d3e-bd89a028d3a1/dab1c984-0026-43ab-9200-3accc59064be_Simulator_Screen_Shot_-_iPad_Pro__U002812.9-inch_U0029__U00284th_generation_U0029_-_2021-01-27_at_12.54.42.png/643x0w.jpg"
+      alt="College Logo"
+      class="logo"
+    />
+    <div class="heading">Muffakham Jah College of Engineering & Technology</div>
+
+    <h1>Welcome to Attendance Portal</h1>
+    <h3>Select an option:</h3>
+
+    <h4>Student</h4>
+    <a href="student-login.html">Student Login</a>
+    <a href="student-register.html">Student Register</a>
+
+    <h4>Teacher</h4>
+    <a href="teacher-login.html">Teacher Login</a>
+    <a href="teacher-register.html">Teacher Register</a>
+  </div>
+
+  <!-- THREE.js for 3D rendering -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
+
+  <!-- VANTA.NET effect -->
+  <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+
+  <!-- Activate the VANTA effect -->
+  <script>
+    VANTA.NET({
+      el: "#vanta-bg",
+      mouseControls: true,
+      touchControls: true,
+      gyroControls: false,
+      minHeight: 200.00,
+      minWidth: 200.00,
+      scale: 1.00,
+      scaleMobile: 1.00,
+      color: 0xffffff,
+      backgroundColor: 0x000000,
+      points: 12.00,
+      maxDistance: 20.00,
+      spacing: 15.00
+    });
+  </script>
+</body>
+</html>

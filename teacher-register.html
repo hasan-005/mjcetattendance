@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Teacher Register - MJ College</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #2a5298, #1e3c72);
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+
+    h1, h3 {
+      text-align: center;
+      margin: 10px 0;
+      text-shadow: 1px 1px 2px #000;
+    }
+
+    .form-box {
+      max-width: 400px;
+      background-color: rgba(255, 255, 255, 0.95);
+      margin: 40px auto;
+      padding: 30px;
+      border-radius: 10px;
+      color: #000;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background-color: #1e3c72;
+      color: white;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #16325c;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Muffakham Jah College of Engineering & Technology</h1>
+  <h3>Teacher Register</h3>
+
+  <div class="form-box">
+    <form id="registerForm">
+      <input type="text" id="name" placeholder="Full Name" required>
+      <input type="email" id="email" placeholder="Email" required>
+      <input type="password" id="password" placeholder="Password" required>
+
+      <select id="department" required>
+        <option value="">Select Department</option>
+        <option value="CSE">CSE</option>
+        <option value="IT">IT</option>
+        <option value="AIML">AIML</option>
+        <option value="AIDS">AIDS</option>
+        <option value="ECE">ECE</option>
+        <option value="EEE">EEE</option>
+        <option value="MECH">MECH</option>
+      </select>
+
+      <button type="submit">Register</button>
+    </form>
+  </div>
+
+  <script type="module" src="teacher-register.js"></script>
+</body>
+</html>

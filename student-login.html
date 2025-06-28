@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Student Login - MJCET Attendance</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #1a1a1a, #333);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .login-box {
+      background: #222;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.6);
+      width: 100%;
+      max-width: 400px;
+    }
+    h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #f0f0f0;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 8px;
+      background: #444;
+      color: #fff;
+    }
+    input::placeholder {
+      color: #ccc;
+    }
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #04c;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #036;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-box">
+    <h2>Student Login</h2>
+    <form id="loginForm">
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <button type="submit">Login</button>
+    </form>
+  </div>
+
+  <script type="module">
+    // Your Firebase Configuration
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCBKwrEO53ah1XbqBezByOPfwsiWgljkEY",
+      authDomain: "mjcet-attendance-db13b.firebaseapp.com",
+      databaseURL: "https://mjcet-attendance-db13b-default-rtdb.firebaseio.com",
+      projectId: "mjcet-attendance-db13b",
+      storageBucket: "mjcet-attendance-db13b.appspot.com",
+      messagingSenderId: "353462379631",
+      appId: "1:353462379631:web:31259dc4db9785c608d99a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        const userCred = await signInWithEmailAndPassword(auth, email, password);
+        const uid = userCred.user.uid;
+        const userSnap = await get(ref(db, `users/${uid}`));
+
+        if (!userSnap.exists()) {
+          alert("User record not found.");
+          return;
+        }
+
+        const userData = userSnap.val();
+        if (userData.role === "student") {
+         window.location.href = "student-dashboard.html";
+
+        } else {
+          alert("You are not a student.");
+        }
+      } catch (err) {
+        alert("Login error: " + err.message);
+      }
+    });
+  </script>
+</body>
+</html>
