@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,10 +12,6 @@
       --text-color: #ffffff;
       --accent-color: #00bcd4;
       --danger-color: #ff4d4d;
-      --present: #00e676;
-      --absent: #ff1744;
-      --leave: #ff9100;
-      --holiday: #90a4ae;
     }
 
     body {
@@ -51,11 +48,6 @@
       font-weight: bold;
       border-radius: 5px;
       cursor: pointer;
-      transition: 0.3s ease;
-    }
-
-    .logout-btn:hover {
-      background-color: #cc0000;
     }
 
     .dashboard {
@@ -64,73 +56,81 @@
       overflow: hidden;
     }
 
-    .sidebar {
-      width: 250px;
-      background-color: #1a1a1a;
-      padding: 20px;
-      border-right: 1px solid #333;
-    }
-
-    .sidebar button {
-      display: block;
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 10px;
-      background-color: var(--accent-color);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
     .content {
       flex: 1;
       padding: 30px;
       overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
-    .info, .attendance-box {
+    .profile-header {
+      font-size: 24px;
+      color: var(--accent-color);
       margin-bottom: 20px;
     }
 
-    .attendance-box {
-      background-color: #252525;
-      border-left: 5px solid var(--accent-color);
+    .info {
+      background-color: var(--card-color);
       padding: 20px;
-      border-radius: 8px;
+      border-radius: 10px;
+      margin-bottom: 40px;
+      width: 100%;
+      max-width: 500px;
     }
 
-    .calendar {
+    .label {
+      font-weight: bold;
+      color: var(--accent-color);
+    }
+
+    .button-grid {
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 5px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      width: 100%;
+      max-width: 500px;
     }
 
-    .calendar-day {
-      padding: 10px;
-      border-radius: 4px;
+    .button-grid button {
+      padding: 40px 0;
+      font-size: 18px;
+      background-color: var(--accent-color);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .tab {
+      display: none;
+      width: 100%;
+      max-width: 800px;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+      background-color: #252525;
+    }
+
+    table th, table td {
+      padding: 12px;
+      border: 1px solid #444;
       text-align: center;
     }
 
-    .present { background-color: var(--present); }
-    .absent { background-color: var(--absent); }
-    .leave { background-color: var(--leave); }
-    .holiday { background-color: var(--holiday); }
+    table tfoot {
+      font-weight: bold;
+      color: var(--accent-color);
+    }
 
     @media screen and (max-width: 768px) {
-      .dashboard {
-        flex-direction: column;
-      }
-
-      .sidebar {
-        width: 100%;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-
-      .sidebar button {
-        flex: 1;
+      .button-grid {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -142,49 +142,56 @@
   </header>
 
   <div class="dashboard">
-    <aside class="sidebar">
-      <button onclick="showTab('profile')">Profile Info</button>
-      <button onclick="showTab('attendance')">Month-wise Attendance</button>
-      <button onclick="showTab('calendar')">Calendar</button>
-      <button onclick="showTab('edit')">Edit Profile</button>
-      <button onclick="showTab('password')">Change Password</button>
-    </aside>
-
     <main class="content">
-      <section id="profile" class="tab">
-        <div class="info">
-          <span class="label">Roll No:</span> <span id="rollNo">Loading...</span><br>
-          <span class="label">Name:</span> <span id="studentName">-</span><br>
-          <span class="label">Department:</span> <span id="studentDept">-</span><br>
-          <span class="label">Semester:</span> <span id="studentSem">-</span><br>
-          <span class="label">Section:</span> <span id="studentSec">-</span>
-        </div>
-      </section>
+      <div class="profile-header">Profile Information</div>
+      <div class="info">
+        <div><span class="label">Roll No:</span> <span id="rollNo">Loading...</span></div>
+        <div><span class="label">Name:</span> <span id="studentName">-</span></div>
+        <div><span class="label">Department:</span> <span id="studentDept">-</span></div>
+        <div><span class="label">Semester:</span> <span id="studentSem">-</span></div>
+        <div><span class="label">Section:</span> <span id="studentSec">-</span></div>
+      </div>
 
-      <section id="attendance" class="tab" style="display:none">
-        <div class="attendance-box">
-          <div><span class="label">Days Present:</span> <span id="daysPresent">0</span></div>
-          <div><span class="label">Total Classes:</span> <span id="totalClasses">0</span></div>
-          <div><span class="label">Attendance %:</span> <span id="percentage">0%</span></div>
-        </div>
-      </section>
+      <div class="button-grid">
+        <button onclick="showTab('subjectwise')">Faculty-wise Attendance</button>
+        <button onclick="showTab('edit')">Edit Profile</button>
+        <button onclick="showTab('password')">Change Password</button>
+      </div>
 
-      <section id="calendar" class="tab" style="display:none">
-        <h3>Monthly Attendance Calendar</h3>
-        <div class="calendar" id="calendarGrid"></div>
-      </section>
-
-      <section id="edit" class="tab" style="display:none">
+      <section id="edit" class="tab">
         <h3>Edit Profile</h3>
         <label>Name: <input type="text" id="editName"></label><br><br>
         <label>Email: <input type="email" id="editEmail"></label><br><br>
         <button onclick="updateProfile()">Save</button>
       </section>
 
-      <section id="password" class="tab" style="display:none">
+      <section id="password" class="tab">
         <h3>Change Password</h3>
         <label>New Password: <input type="password" id="newPassword"></label><br><br>
         <button onclick="changePassword()">Update Password</button>
+      </section>
+
+      <section id="subjectwise" class="tab">
+        <h3>Faculty-wise Attendance</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Faculty Name</th>
+              <th>No. of Hours Attended</th>
+              <th>Total No. of Hours</th>
+              <th>Percentage</th>
+            </tr>
+          </thead>
+          <tbody id="subjectAttendanceTable">
+            <!-- Filled by student-dashboard.js -->
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3">Overall Attendance</td>
+              <td id="overallPercent">0%</td>
+            </tr>
+          </tfoot>
+        </table>
       </section>
     </main>
   </div>
@@ -193,6 +200,7 @@
     function showTab(id) {
       document.querySelectorAll('.tab').forEach(tab => tab.style.display = 'none');
       document.getElementById(id).style.display = 'block';
+      document.querySelector('.button-grid').scrollIntoView({ behavior: 'smooth' });
     }
   </script>
 
