@@ -1,10 +1,10 @@
 // teacher-login.js
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-// Firebase config (same as yours)
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCBKwrEO53ah1XbqBezByOPfwsiWgljkEY",
   authDomain: "mjcet-attendance-db13b.firebaseapp.com",
@@ -22,7 +22,7 @@ const db = getDatabase(app);
 // Handle login
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  
+
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
 
@@ -36,11 +36,26 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
     if (userData && userData.role === "teacher") {
       alert("Login successful!");
       window.location.href = "teacher-dashboard.html";
-
     } else {
       alert("Access denied: Not a teacher account.");
     }
   } catch (error) {
     alert("Login failed: " + error.message);
+  }
+});
+
+// 🔁 Handle password reset
+document.getElementById("forgotPassword").addEventListener("click", async (e) => {
+  e.preventDefault();
+  const email = document.getElementById("email").value.trim();
+  if (!email) {
+    alert("Please enter your email above to reset your password.");
+    return;
+  }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    alert("Password reset email sent. Please check your inbox.");
+  } catch (err) {
+    alert("Error sending reset email: " + err.message);
   }
 });
