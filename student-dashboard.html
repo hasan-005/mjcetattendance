@@ -11,6 +11,10 @@
       --text-color: #ffffff;
       --accent-color: #00bcd4;
       --danger-color: #ff4d4d;
+      --present: #00e676;
+      --absent: #ff1744;
+      --leave: #ff9100;
+      --holiday: #90a4ae;
     }
 
     body {
@@ -18,6 +22,9 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: var(--bg-color);
       color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
     }
 
     header {
@@ -51,23 +58,39 @@
       background-color: #cc0000;
     }
 
-    main {
-      max-width: 600px;
-      margin: 40px auto;
-      background-color: var(--card-color);
+    .dashboard {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      width: 250px;
+      background-color: #1a1a1a;
+      padding: 20px;
+      border-right: 1px solid #333;
+    }
+
+    .sidebar button {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      background-color: var(--accent-color);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .content {
+      flex: 1;
       padding: 30px;
-      border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+      overflow-y: auto;
     }
 
-    .info {
-      font-size: 20px;
+    .info, .attendance-box {
       margin-bottom: 20px;
-    }
-
-    .label {
-      font-weight: bold;
-      color: var(--accent-color);
     }
 
     .attendance-box {
@@ -77,29 +100,37 @@
       border-radius: 8px;
     }
 
-    .attendance-box div {
-      margin: 10px 0;
-      font-size: 18px;
+    .calendar {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
     }
 
-    .attendance-box span {
-      font-weight: bold;
-      color: #90caf9;
+    .calendar-day {
+      padding: 10px;
+      border-radius: 4px;
+      text-align: center;
     }
 
-    @media screen and (max-width: 600px) {
-      main {
-        margin: 20px;
-        padding: 20px;
+    .present { background-color: var(--present); }
+    .absent { background-color: var(--absent); }
+    .leave { background-color: var(--leave); }
+    .holiday { background-color: var(--holiday); }
+
+    @media screen and (max-width: 768px) {
+      .dashboard {
+        flex-direction: column;
       }
 
-      header h1 {
-        font-size: 20px;
+      .sidebar {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
       }
 
-      .logout-btn {
-        padding: 8px 16px;
-        font-size: 12px;
+      .sidebar button {
+        flex: 1;
       }
     }
   </style>
@@ -110,19 +141,61 @@
     <button class="logout-btn" id="logoutBtn">Logout</button>
   </header>
 
-  <main>
-    <div class="info">
-      <span class="label">Roll No:</span> <span id="rollNo">Loading...</span>
-    </div>
+  <div class="dashboard">
+    <aside class="sidebar">
+      <button onclick="showTab('profile')">Profile Info</button>
+      <button onclick="showTab('attendance')">Month-wise Attendance</button>
+      <button onclick="showTab('calendar')">Calendar</button>
+      <button onclick="showTab('edit')">Edit Profile</button>
+      <button onclick="showTab('password')">Change Password</button>
+    </aside>
 
-    <div class="attendance-box">
-      <div><span class="label">Days Present:</span> <span id="daysPresent">0</span></div>
-      <div><span class="label">Total Classes:</span> <span id="totalClasses">0</span></div>
-      <div><span class="label">Attendance %:</span> <span id="percentage">0%</span></div>
-    </div>
-  </main>
+    <main class="content">
+      <section id="profile" class="tab">
+        <div class="info">
+          <span class="label">Roll No:</span> <span id="rollNo">Loading...</span><br>
+          <span class="label">Name:</span> <span id="studentName">-</span><br>
+          <span class="label">Department:</span> <span id="studentDept">-</span><br>
+          <span class="label">Semester:</span> <span id="studentSem">-</span><br>
+          <span class="label">Section:</span> <span id="studentSec">-</span>
+        </div>
+      </section>
 
-  <!-- ✅ FIXED: Correct script file name -->
+      <section id="attendance" class="tab" style="display:none">
+        <div class="attendance-box">
+          <div><span class="label">Days Present:</span> <span id="daysPresent">0</span></div>
+          <div><span class="label">Total Classes:</span> <span id="totalClasses">0</span></div>
+          <div><span class="label">Attendance %:</span> <span id="percentage">0%</span></div>
+        </div>
+      </section>
+
+      <section id="calendar" class="tab" style="display:none">
+        <h3>Monthly Attendance Calendar</h3>
+        <div class="calendar" id="calendarGrid"></div>
+      </section>
+
+      <section id="edit" class="tab" style="display:none">
+        <h3>Edit Profile</h3>
+        <label>Name: <input type="text" id="editName"></label><br><br>
+        <label>Email: <input type="email" id="editEmail"></label><br><br>
+        <button onclick="updateProfile()">Save</button>
+      </section>
+
+      <section id="password" class="tab" style="display:none">
+        <h3>Change Password</h3>
+        <label>New Password: <input type="password" id="newPassword"></label><br><br>
+        <button onclick="changePassword()">Update Password</button>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    function showTab(id) {
+      document.querySelectorAll('.tab').forEach(tab => tab.style.display = 'none');
+      document.getElementById(id).style.display = 'block';
+    }
+  </script>
+
   <script type="module" src="student-dashboard.js"></script>
 </body>
 </html>
