@@ -17,9 +17,9 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
-let facultyName = ""; // Will hold the fetched name of logged-in teacher
+let facultyName = ""; // ✅ Store faculty name from Firebase
 
-// ✅ On teacher login, fetch faculty name from Firebase
+// ✅ Get logged-in faculty's name
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     const uid = user.uid;
@@ -27,7 +27,9 @@ onAuthStateChanged(auth, async (user) => {
     if (snapshot.exists()) {
       const data = snapshot.val();
       facultyName = data.name || user.email;
-      console.log("Faculty name auto-filled:", facultyName);
+
+      // ✅ FIX: Show name in UI
+      document.getElementById("loggedFacultyName").innerText = facultyName;
     } else {
       alert("Faculty profile not found in database.");
     }
