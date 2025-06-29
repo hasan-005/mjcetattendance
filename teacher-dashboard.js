@@ -1,6 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, get, child, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getDatabase, ref, get, child, set, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
+// ✅ Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyCBKwrEO53ah1XbqBezByOPfwsiWgljkEY",
   authDomain: "mjcet-attendance-db13b.firebaseapp.com",
@@ -13,6 +15,27 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const auth = getAuth(app);
+
+let facultyName = ""; // Will hold the fetched name of logged-in teacher
+
+// ✅ On teacher login, fetch faculty name from Firebase
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    const uid = user.uid;
+    const snapshot = await get(ref(db, `users/${uid}`));
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      facultyName = data.name || user.email;
+      console.log("Faculty name auto-filled:", facultyName);
+    } else {
+      alert("Faculty profile not found in database.");
+    }
+  } else {
+    alert("Not logged in.");
+    window.location.href = "teacher-login.html";
+  }
+});
 
 const loadBtn = document.getElementById("loadBtn");
 const submitBtn = document.getElementById("submitBtn");
@@ -68,25 +91,25 @@ submitBtn.addEventListener("click", async () => {
   const selectedDate = document.getElementById("attendanceDate").value;
   const hours = document.getElementById("numHours").value;
 
-  if (!selectedDate || !hours) {
-    alert("Please select a valid date and number of hours.");
+  if (!selectedDate || !hours || !facultyName) {
+    alert("Missing data: Date, Hours, or Faculty Name not available.");
     return;
   }
 
   const checkboxes = document.querySelectorAll(".present-checkbox");
-  const attendanceData = {};
+  const updates = {};
 
   checkboxes.forEach((cb) => {
     const roll = cb.dataset.roll;
-    attendanceData[roll] = {
+    const studentPath = `attendance/${dept}/sem${sem}/${sec}/${selectedDate}/${roll}/${facultyName}`;
+    updates[studentPath] = {
       status: cb.checked ? "present" : "absent",
       hours: parseInt(hours)
     };
   });
 
-  const path = `attendance/${dept}/sem${sem}/${sec}/${selectedDate}`;
   try {
-    await set(ref(db, path), attendanceData);
+    await update(ref(db), updates);
     successMessage.style.display = "block";
     setTimeout(() => {
       successMessage.style.display = "none";
@@ -96,3 +119,4 @@ submitBtn.addEventListener("click", async () => {
     alert("Failed to submit attendance.");
   }
 });
+
