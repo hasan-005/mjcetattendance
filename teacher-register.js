@@ -19,6 +19,9 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
+// Secret access code for teacher registration
+const TEACHER_ACCESS_CODE = "556699"; // Change this as needed
+
 document.getElementById("registerForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -26,9 +29,15 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
   const department = document.getElementById("department").value;
+  const teacherCode = document.getElementById("teacherCode").value.trim();
 
   if (!department) {
     alert("Please select a department.");
+    return;
+  }
+
+  if (teacherCode !== TEACHER_ACCESS_CODE) {
+    alert("Invalid Teacher Access Code!");
     return;
   }
 
@@ -44,7 +53,11 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
     });
 
     alert("Registration successful!");
-    window.location.href = "teacher-login.html";
+    // Store session info if needed
+    localStorage.setItem("uid", uid);
+    localStorage.setItem("role", "teacher");
+
+    window.location.href = "teacher-dashboard.html";
   } catch (error) {
     alert("Error: " + error.message);
   }
