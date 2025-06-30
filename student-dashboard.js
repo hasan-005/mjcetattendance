@@ -26,19 +26,22 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
-// 🔒 Logout functionality
+// 🔒 Logout
 document.getElementById("logoutBtn").addEventListener("click", () => {
   signOut(auth).then(() => window.location.href = "student-login.html");
 });
 
-// ✅ On login
+let globalDept = "", globalSem = "", globalSec = "", globalRoll = "";
+
+// ✅ Load profile and subject-wise attendance
 onAuthStateChanged(auth, async (user) => {
   if (!user) return window.location.href = "student-login.html";
 
   const email = user.email;
   const roll = email.split("@")[0];
+  globalRoll = roll;
 
-  let dept = "", sem = "", sec = "", name = "";
+  let name = "", dept = "", sem = "", sec = "";
 
   const studentsSnapshot = await get(ref(db, "students"));
   if (studentsSnapshot.exists()) {
@@ -59,23 +62,25 @@ onAuthStateChanged(auth, async (user) => {
 
   if (!dept || !sem || !sec) return alert("Student not found.");
 
-  // 🧑 Fill profile
+  globalDept = dept;
+  globalSem = sem;
+  globalSec = sec;
+
+  // 🎯 Set profile info
   document.getElementById("rollNo").innerText = roll;
   document.getElementById("studentName").innerText = name;
   document.getElementById("studentDept").innerText = dept.toUpperCase();
   document.getElementById("studentSem").innerText = sem;
   document.getElementById("studentSec").innerText = sec.toUpperCase();
 
-  // 📊 Load attendance
+  // 📊 Faculty-wise attendance
   const attendancePath = `attendance/${dept}/sem${sem}/${sec}`;
   const snapshot = await get(ref(db, attendancePath));
   const facultyWise = {};
-  let totalHours = 0;
-  let attendedHours = 0;
+  let totalHours = 0, attendedHours = 0;
 
   if (snapshot.exists()) {
     const data = snapshot.val();
-
     for (const date in data) {
       const rollData = data[date][roll];
       if (!rollData) continue;
@@ -83,14 +88,10 @@ onAuthStateChanged(auth, async (user) => {
       for (const faculty in rollData) {
         const rec = rollData[faculty];
         if (!facultyWise[faculty]) {
-          facultyWise[faculty] = {
-            attended: 0,
-            total: 0
-          };
+          facultyWise[faculty] = { attended: 0, total: 0 };
         }
 
         facultyWise[faculty].total += rec.hours;
-
         if (rec.status === "present") {
           facultyWise[faculty].attended += rec.hours;
           attendedHours += rec.hours;
@@ -101,7 +102,6 @@ onAuthStateChanged(auth, async (user) => {
     }
   }
 
-  // 🧾 Render table
   const table = document.getElementById("subjectAttendanceTable");
   table.innerHTML = "";
 
@@ -111,28 +111,25 @@ onAuthStateChanged(auth, async (user) => {
       ? ((f.attended / f.total) * 100).toFixed(2) + "%"
       : "0%";
 
-    const row = `
+    table.innerHTML += `
       <tr>
         <td>${faculty}</td>
         <td>${f.attended}</td>
         <td>${f.total}</td>
         <td>${percent}</td>
-      </tr>
-    `;
-    table.innerHTML += row;
+      </tr>`;
   }
 
-  // 📈 Overall percentage
   const overall = totalHours > 0 ? ((attendedHours / totalHours) * 100).toFixed(2) : "0";
   document.getElementById("overallPercent").innerText = overall + "%";
 });
 
-// ✏️ Profile Edit Placeholder
+// ✏️ Placeholder for edit
 window.updateProfile = () => {
   alert("Update logic to be added here if needed.");
 };
 
-// 🔐 Change password logic
+// 🔐 Change Password
 window.changePassword = () => {
   const newPass = document.getElementById("newPassword").value;
   const user = auth.currentUser;
@@ -144,4 +141,43 @@ window.changePassword = () => {
     alert("Please enter a valid new password.");
   }
 };
+
+// 📅 Calendar View Attendance
+window.loadAttendanceByDate = async () => {
+  const selectedDate = document.getElementById("calendarDate").value;
+  const container = document.getElementById("calendarAttendanceInfo");
+
+  if (!selectedDate || !globalRoll || !globalDept || !globalSem || !globalSec) {
+    container.innerHTML = "<p>Please wait or check login data.</p>";
+    return;
+  }
+
+  const path = `attendance/${globalDept}/sem${globalSem}/${globalSec}/${selectedDate}/${globalRoll}`;
+  const snapshot = await get(ref(db, path));
+
+  if (!snapshot.exists()) {
+    container.innerHTML = "<p>No attendance found for this date.</p>";
+    return;
+  }
+
+  const data = snapshot.val();
+  let html = `<table>
+                <tr><th>Name of Faculty</th><th>Status</th><th>Total Hours</th></tr>`;
+
+  for (const faculty in data) {
+    const rec = data[faculty];
+    html += `
+      <tr>
+        <td>${faculty}</td>
+        <td style="color:${rec.status === "present" ? "#4caf50" : "#ff4d4d"}">
+          ${rec.status === "present" ? "Present" : "Absent"}
+        </td>
+        <td>${rec.hours}</td>
+      </tr>`;
+  }
+
+  html += "</table>";
+  container.innerHTML = html;
+};
+
 
