@@ -2,113 +2,130 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Teacher Dashboard - Attendance</title>
+  <title>Teacher Dashboard - MJ College</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Vanta Background -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
+
   <style>
-    :root {
-      --bg-color: #1a1a2e;
-      --card-bg: #222344;
-      --text-color: #ffffff;
-      --primary-color: #00bcd4;
-      --success-color: #4caf50;
-      --border-color: #444;
+    * {
+      box-sizing: border-box;
     }
 
-    body {
+    html, body {
       margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to bottom right, #0f2027, #203a43, #2c5364);
-      color: var(--text-color);
       padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      height: 100%;
+      color: white;
     }
 
-    header {
-      background-color: #101522;
-      padding: 20px;
+    #background {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+    }
+
+    .main-wrapper {
+      min-height: 100vh;
+      padding: 30px 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .header {
       text-align: center;
-      border-bottom: 2px solid var(--primary-color);
+      color: #ccc;
+      margin-bottom: 20px;
     }
 
-    header h1 {
-      color: var(--primary-color);
-      margin: 0;
-      font-size: 28px;
+    .header h1 {
+      font-size: 26px;
+      color: #b0b0b0;
+      margin-bottom: 5px;
     }
 
-    main {
-      max-width: 900px;
-      margin: 30px auto;
-      padding: 20px;
-      background-color: var(--card-bg);
+    .container {
+      width: 100%;
+      max-width: 880px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(15px);
       border-radius: 12px;
-      box-shadow: 0 0 15px rgba(0, 188, 212, 0.2);
+      padding: 30px 25px;
+      box-shadow: 0 0 30px rgba(255,255,255,0.1);
     }
 
     label {
       display: block;
-      margin-top: 20px;
-      font-weight: bold;
+      margin: 18px 0 6px;
+      font-weight: 500;
     }
 
     input, select {
       width: 100%;
       padding: 12px;
-      margin-top: 8px;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-      background-color: #2a2a4a;
+      border-radius: 6px;
+      border: none;
+      background: #2c2c2c;
       color: white;
-      font-size: 16px;
+      font-size: 15px;
+      margin-bottom: 10px;
     }
 
     button {
-      margin-top: 25px;
-      padding: 14px 25px;
-      background: linear-gradient(to right, #00bcd4, #00acc1);
-      border: none;
-      color: white;
-      font-size: 16px;
+      width: 100%;
+      padding: 14px;
+      background-color: #b0b0b0;
+      color: black;
       font-weight: bold;
-      border-radius: 8px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
       cursor: pointer;
       transition: background 0.3s ease;
+      margin-top: 20px;
     }
 
     button:hover {
-      background: linear-gradient(to right, #00acc1, #0097a7);
+      background-color: #999;
     }
 
     table {
       width: 100%;
       margin-top: 25px;
       border-collapse: collapse;
-      background-color: #2a2a4a;
+      background-color: #1a1a1a;
       border-radius: 10px;
       overflow: hidden;
     }
 
     th, td {
       padding: 14px;
-      border: 1px solid var(--border-color);
+      border: 1px solid #444;
       text-align: center;
     }
 
     th {
-      background-color: #333356;
-      color: var(--primary-color);
+      background-color: #333333;
+      color: #b0b0b0;
     }
 
     tr:nth-child(even) {
-      background-color: #1e1e38;
+      background-color: #222;
     }
 
     tr:hover {
-      background-color: #2c2c4d;
+      background-color: #2e2e2e;
     }
 
     #successMessage {
       display: none;
-      background-color: var(--success-color);
+      background-color: #4caf50;
       color: white;
       padding: 12px;
       border-radius: 6px;
@@ -117,21 +134,20 @@
       font-weight: bold;
     }
 
-    #facultyDisplay {
-      margin-top: 10px;
-      font-size: 16px;
-      color: #90caf9;
-      text-align: center;
+    section {
+      margin-top: 40px;
+      padding: 20px;
+      background-color: rgba(0, 0, 0, 0.5);
+      border-radius: 12px;
     }
 
     @media screen and (max-width: 600px) {
-      main {
-        padding: 15px;
-        margin: 20px;
+      .container {
+        padding: 20px;
       }
 
-      th, td {
-        padding: 10px;
+      .header h1 {
+        font-size: 22px;
       }
 
       button {
@@ -142,15 +158,19 @@
 </head>
 <body>
 
-  <header>
-    <h1>📋 Teacher Attendance Dashboard</h1>
-  </header>
+  <div id="background"></div>
 
-  <main>
-    <div id="facultyDisplay">👤 Logged in as: <span id="loggedFacultyName">Loading...</span></div>
+  <div class="main-wrapper">
+    <div class="header">
+      <h1>Muffakham Jah College of Engineering & Technology</h1>
+      <h3>📋 Teacher Attendance Dashboard</h3>
+    </div>
 
-    <label for="department">Department</label>
-    <select id="department" required>
+    <div class="container">
+      <div id="facultyDisplay">👤 Logged in as: <span id="loggedFacultyName">Loading...</span></div>
+
+      <label for="department">Department</label>
+      <select id="department" required>
         <option value="">Select Department</option>
         <option value="CSE">CSE</option>
         <option value="IT">IT</option>
@@ -161,8 +181,8 @@
         <option value="MECH">MECH</option>
       </select>
 
-    <label for="semester">Semester</label>
-    <select id="semester" required>
+      <label for="semester">Semester</label>
+      <select id="semester" required>
         <option value="">Select Semester</option>
         <option value="1">1</option>
         <option value="2">2</option>
@@ -174,38 +194,65 @@
         <option value="8">8</option>
       </select>
 
-    <label for="section">Section</label>
-    <select id="section">
-      <option value="">-- Select Section --</option>
-      <option value="A">A</option>
-      <option value="B">B</option>
-    </select>
+      <label for="section">Section</label>
+      <select id="section">
+        <option value="">-- Select Section --</option>
+        <option value="A">A</option>
+        <option value="B">B</option>
+        <option value="C">C</option>
+      </select>
 
-    <label for="attendanceDate">Date</label>
-    <input type="date" id="attendanceDate" />
+      <label for="attendanceDate">Date</label>
+      <input type="date" id="attendanceDate" />
 
-    <label for="numHours">Number of Hours</label>
-    <input type="number" id="numHours" min="1" max="8" />
+      <label for="numHours">Number of Hours</label>
+      <input type="number" id="numHours" min="1" max="8" />
 
-    <button id="loadBtn">📄 Load Students</button>
+      <button id="loadBtn">📄 Load Students</button>
 
-    <table id="studentTable" style="display:none;">
-      <thead>
-        <tr>
-          <th>Roll No</th>
-          <th>Name</th>
-          <th>Present</th>
-        </tr>
-      </thead>
-      <tbody id="studentList"></tbody>
-    </table>
+      <table id="studentTable" style="display:none;">
+        <thead>
+          <tr>
+            <th>Roll No</th>
+            <th>Name</th>
+            <th>Present</th>
+          </tr>
+        </thead>
+        <tbody id="studentList"></tbody>
+      </table>
 
-    <button id="submitBtn" style="display:none;">✅ Submit Attendance</button>
+      <button id="submitBtn" style="display:none;">✅ Submit Attendance</button>
 
-    <div id="successMessage">Attendance submitted successfully!</div>
-  </main>
+      <div id="successMessage">Attendance submitted successfully!</div>
+
+      <section>
+        <h2 style="color: #b0b0b0;">🔍 Check Student Attendance</h2>
+        <label for="checkRoll">Enter Roll Number</label>
+        <input type="text" id="checkRoll" placeholder="Example: 160421737024" />
+        <button onclick="checkAttendance()">📊 View Attendance</button>
+        <div id="attendanceResult" style="margin-top: 20px; font-size: 16px;"></div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    VANTA.NET({
+      el: "#background",
+      mouseControls: true,
+      touchControls: true,
+      minHeight: 200.00,
+      minWidth: 200.00,
+      scale: 1.0,
+      scaleMobile: 1.0,
+      color: 0xffffff,
+      backgroundColor: 0x000000,
+      points: 12.0,
+      maxDistance: 20.0,
+      spacing: 18.0
+    });
+  </script>
 
   <script type="module" src="teacher-dashboard.js"></script>
+
 </body>
 </html>
-
