@@ -1,6 +1,16 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getDatabase, ref, get, child, set, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import {
+  getDatabase,
+  ref,
+  get,
+  child,
+  update
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 // ✅ Firebase Config
 const firebaseConfig = {
@@ -17,21 +27,36 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
-let facultyName = ""; // ✅ Store faculty name from Firebase
+// ✅ DOM Elements
+const loadBtn = document.getElementById("loadBtn");
+const submitBtn = document.getElementById("submitBtn");
+const studentTable = document.getElementById("studentTable");
+const studentList = document.getElementById("studentList");
+const successMessage = document.getElementById("successMessage");
+const department = document.getElementById("department");
+const semester = document.getElementById("semester");
+const section = document.getElementById("section");
+const attendanceDate = document.getElementById("attendanceDate");
+const numHours = document.getElementById("numHours");
 
-// ✅ Get logged-in faculty's name
+let facultyName = "";
+
+// ✅ Get logged-in teacher's name
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     const uid = user.uid;
-    const snapshot = await get(ref(db, `users/${uid}`));
-    if (snapshot.exists()) {
-      const data = snapshot.val();
-      facultyName = data.name || user.email;
-
-      // ✅ FIX: Show name in UI
-      document.getElementById("loggedFacultyName").innerText = facultyName;
-    } else {
-      alert("Faculty profile not found in database.");
+    try {
+      const snapshot = await get(ref(db, `users/${uid}`));
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        facultyName = data.name || user.email;
+        document.getElementById("loggedFacultyName").innerText = facultyName;
+      } else {
+        facultyName = user.email;
+        document.getElementById("loggedFacultyName").innerText = facultyName;
+      }
+    } catch (err) {
+      console.error("Error fetching faculty info:", err);
     }
   } else {
     alert("Not logged in.");
@@ -39,19 +64,14 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-const loadBtn = document.getElementById("loadBtn");
-const submitBtn = document.getElementById("submitBtn");
-const studentTable = document.getElementById("studentTable");
-const studentList = document.getElementById("studentList");
-const successMessage = document.getElementById("successMessage");
-
+// ✅ Load students
 loadBtn.addEventListener("click", async () => {
-  const dept = document.getElementById("department").value;
-  const sem = document.getElementById("semester").value;
-  const sec = document.getElementById("section").value;
+  const dept = department.value;
+  const sem = semester.value;
+  const sec = section.value;
 
   if (!dept || !sem || !sec) {
-    alert("Please select Department, Semester and Section.");
+    alert("Please select department, semester and section.");
     return;
   }
 
@@ -79,22 +99,22 @@ loadBtn.addEventListener("click", async () => {
     } else {
       alert("No students found.");
     }
-
   } catch (error) {
-    console.error(error);
+    console.error("Load error:", error);
     alert("Error loading students.");
   }
 });
 
+// ✅ Submit attendance
 submitBtn.addEventListener("click", async () => {
-  const dept = document.getElementById("department").value;
-  const sem = document.getElementById("semester").value;
-  const sec = document.getElementById("section").value;
-  const selectedDate = document.getElementById("attendanceDate").value;
-  const hours = document.getElementById("numHours").value;
+  const dept = department.value;
+  const sem = semester.value;
+  const sec = section.value;
+  const selectedDate = attendanceDate.value;
+  const hours = parseInt(numHours.value);
 
   if (!selectedDate || !hours || !facultyName) {
-    alert("Missing data: Date, Hours, or Faculty Name not available.");
+    alert("Please enter date, hours and ensure faculty is logged in.");
     return;
   }
 
@@ -106,7 +126,7 @@ submitBtn.addEventListener("click", async () => {
     const studentPath = `attendance/${dept}/sem${sem}/${sec}/${selectedDate}/${roll}/${facultyName}`;
     updates[studentPath] = {
       status: cb.checked ? "present" : "absent",
-      hours: parseInt(hours)
+      hours: hours
     };
   });
 
@@ -121,4 +141,55 @@ submitBtn.addEventListener("click", async () => {
     alert("Failed to submit attendance.");
   }
 });
+
+// ✅ Check Attendance (global scope for HTML)
+window.checkAttendance = async () => {
+  const rollNo = document.getElementById("checkRoll").value.trim();
+  const dept = department.value;
+  const sem = semester.value;
+  const sec = section.value;
+  const resultDiv = document.getElementById("attendanceResult");
+
+  if (!rollNo || !dept || !sem || !sec) {
+    resultDiv.innerHTML = "<span style='color: red;'>❗ Please enter roll number and select department/semester/section.</span>";
+    return;
+  }
+
+  const dbPath = `attendance/${dept}/sem${sem}/${sec}`;
+  let presentCount = 0, totalCount = 0;
+  let studentName = "Unknown";
+
+  try {
+    const snapshot = await get(child(ref(db), dbPath));
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      for (const date in data) {
+        const entry = data[date][rollNo];
+        if (!entry) continue;
+
+        for (const faculty in entry) {
+          const record = entry[faculty];
+          if (record.status === "present") presentCount++;
+          totalCount++;
+        }
+      }
+    }
+
+    const nameSnap = await get(ref(db, `students/${dept}/sem${sem}/${sec}/${rollNo}`));
+    if (nameSnap.exists()) {
+      studentName = nameSnap.val().name || studentName;
+    }
+
+    resultDiv.innerHTML = `
+      <strong>Name:</strong> ${studentName}<br>
+      <strong>Roll No:</strong> ${rollNo}<br>
+      <strong>Classes Attended:</strong> ${presentCount}<br>
+      <strong>Total Classes:</strong> ${totalCount}<br>
+      <strong>Attendance %:</strong> ${totalCount > 0 ? ((presentCount / totalCount) * 100).toFixed(2) + "%" : "0%"}
+    `;
+  } catch (error) {
+    console.error("Check attendance error:", error);
+    resultDiv.innerHTML = "<span style='color: red;'>❌ Error fetching attendance.</span>";
+  }
+};
 
