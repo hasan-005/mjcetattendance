@@ -38,6 +38,11 @@
       border: 1px solid #ccc;
     }
 
+    input[type="password"].code-input {
+      border: 2px solid #2a5298;
+      background-color: #f0f8ff;
+    }
+
     button {
       background-color: #1e3c72;
       color: white;
@@ -48,6 +53,12 @@
 
     button:hover {
       background-color: #16325c;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
     }
   </style>
 </head>
@@ -71,7 +82,10 @@
         <option value="ECE">ECE</option>
         <option value="EEE">EEE</option>
         <option value="MECH">MECH</option>
+        <option value="CIVIL">CIVIL</option>
       </select>
+
+      <input type="password" id="teacherCode" class="code-input" placeholder="Enter Teacher Access Code" required>
 
       <button type="submit">Register</button>
     </form>
