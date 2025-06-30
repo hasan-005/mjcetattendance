@@ -107,6 +107,7 @@
       display: none;
       width: 100%;
       max-width: 800px;
+      margin-top: 30px;
     }
 
     table {
@@ -125,6 +126,38 @@
     table tfoot {
       font-weight: bold;
       color: var(--accent-color);
+    }
+
+    input[type="date"],
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      padding: 8px;
+      font-size: 16px;
+      border-radius: 5px;
+      border: 1px solid #888;
+      background-color: #1e1e1e;
+      color: white;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    #calendarAttendanceInfo table {
+      margin-top: 20px;
+      background-color: #252525;
+    }
+
+    #calendarAttendanceInfo th {
+      background-color: #333356;
+      color: var(--accent-color);
+    }
+
+    #calendarAttendanceInfo tr:nth-child(even) {
+      background-color: #1e1e38;
+    }
+
+    #calendarAttendanceInfo tr:hover {
+      background-color: #2c2c4d;
     }
 
     @media screen and (max-width: 768px) {
@@ -153,6 +186,7 @@
 
       <div class="button-grid">
         <button onclick="showTab('subjectwise')">Faculty-wise Attendance</button>
+        <button onclick="showTab('calendarView')">View Attendance Calendar</button>
         <button onclick="showTab('edit')">Edit Profile</button>
         <button onclick="showTab('password')">Change Password</button>
       </div>
@@ -192,6 +226,12 @@
           </tfoot>
         </table>
       </section>
+
+      <section id="calendarView" class="tab">
+        <h3>📅 Calendar View Attendance</h3>
+        <input type="date" id="calendarDate" onchange="loadAttendanceByDate()" />
+        <div id="calendarAttendanceInfo" style="margin-top: 20px;"></div>
+      </section>
     </main>
   </div>
 
@@ -206,4 +246,5 @@
   <script type="module" src="student-dashboard.js"></script>
 </body>
 </html>
+
 
