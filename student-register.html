@@ -3,69 +3,87 @@
 <head>
   <meta charset="UTF-8" />
   <title>Student Registration - MJ College</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vanta/dist/vanta.net.min.js"></script>
+
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #0f2027, #203a43, #2c5364); /* Bluish gradient */
-      color: #fff;
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
       margin: 0;
       padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      height: 100%;
+      color: white;
+    }
+
+    #background {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+    }
+
+    .main-wrapper {
+      min-height: 100vh;
+      padding: 30px 15px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .header {
       text-align: center;
-      padding: 40px 20px 20px;
+      color: #ccc;
+      margin-bottom: 20px;
     }
 
     .header h1 {
       font-size: 26px;
-      color: #00bcd4;
-      margin-bottom: 8px;
-    }
-
-    .header h3 {
-      font-weight: normal;
-      color: #cfd8dc;
-      margin-top: 0;
+      color: #b0b0b0;
+      margin-bottom: 5px;
     }
 
     .container {
-      max-width: 500px;
-      margin: 30px auto;
-      background-color: rgba(255, 255, 255, 0.97);
-      border-radius: 10px;
+      width: 100%;
+      max-width: 480px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(15px);
+      border-radius: 12px;
       padding: 30px 25px;
-      box-shadow: 0 0 15px rgba(0, 188, 212, 0.3);
-      color: #000;
+      box-shadow: 0 0 30px rgba(255,255,255,0.1);
     }
 
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #2c3e50;
-    }
-
-    form p, form label {
+    form label {
       font-size: 14px;
-      margin: 8px 0 4px;
+      margin: 6px 0 4px;
+      display: block;
     }
 
     input, select {
       width: 100%;
       padding: 12px;
       margin-bottom: 16px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      font-size: 16px;
-      box-sizing: border-box;
+      border-radius: 6px;
+      border: none;
+      background: #2c2c2c;
+      color: white;
+      font-size: 15px;
+    }
+
+    input::placeholder {
+      color: #aaa;
     }
 
     button {
       width: 100%;
       padding: 14px;
-      background-color: #00bcd4;
-      color: white;
+      background-color: #b0b0b0;
+      color: black;
       font-weight: bold;
       font-size: 16px;
       border: none;
@@ -75,12 +93,11 @@
     }
 
     button:hover {
-      background-color: #0097a7;
+      background-color: #999;
     }
 
     @media screen and (max-width: 600px) {
       .container {
-        margin: 20px;
         padding: 20px;
       }
 
@@ -92,63 +109,89 @@
 </head>
 <body>
 
-  <div class="header">
-    <h1>Muffakham Jah College of Engineering & Technology</h1>
-    <h3>Student Registration Form</h3>
+  <div id="background"></div>
+
+  <div class="main-wrapper">
+    <div class="header">
+      <h1>Muffakham Jah College of Engineering & Technology</h1>
+      <h3>Student Registration Form</h3>
+    </div>
+
+    <div class="container">
+      <form id="registerForm" onsubmit="handleSubmit(event)">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" placeholder="Enter your full name" required>
+
+        <label for="email">Email (College Mail ID)</label>
+        <input type="email" id="email" placeholder="Ex: 160423737***@mjcollege.ac.in" required>
+
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Enter password" required>
+
+        <label for="roll">Roll Number</label>
+        <input type="text" id="roll" placeholder="Ex: 160423737***" required>
+
+        <label for="department">Department</label>
+        <select id="department" required>
+          <option value="">Select Department</option>
+          <option value="CSE">CSE</option>
+          <option value="IT">IT</option>
+          <option value="AIML">AIML</option>
+          <option value="AIDS">AIDS</option>
+          <option value="ECE">ECE</option>
+          <option value="EEE">EEE</option>
+          <option value="MECH">MECH</option>
+        </select>
+
+        <label for="semester">Semester</label>
+        <select id="semester" required>
+          <option value="">Select Semester</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+        </select>
+
+        <label for="section">Section</label>
+        <select id="section" required>
+          <option value="">Select Section</option>
+          <option value="A">A</option>
+          <option value="B">B</option>
+          <option value="C">C</option>
+        </select>
+
+        <button type="submit">Register</button>
+      </form>
+    </div>
   </div>
 
-  <div class="container">
-    <form id="registerForm">
-      <label for="name">Full Name</label>
-      <input type="text" id="name" placeholder="Enter your full name" required>
+  <script>
+    VANTA.NET({
+      el: "#background",
+      mouseControls: true,
+      touchControls: true,
+      minHeight: 200.00,
+      minWidth: 200.00,
+      scale: 1.0,
+      scaleMobile: 1.0,
+      color: 0xffffff,
+      backgroundColor: 0x000000,
+      points: 12.0,
+      maxDistance: 20.0,
+      spacing: 18.0
+    });
 
-      <label for="email">Email (College Mail ID)</label>
-      <input type="email" id="email" placeholder="Ex: 160423737***@mjcollege.ac.in" required>
+    function handleSubmit(event) {
+      event.preventDefault(); // stop reload
+      alert("🎉 Registered successfully!");
+      // Optional: Add Firebase code here
+    }
+  </script>
+<script type="module" src="student-register.js"></script>
 
-      <label for="password">Password</label>
-      <input type="password" id="password" placeholder="Enter password" required>
-
-      <label for="roll">Roll Number</label>
-      <input type="text" id="roll" placeholder="Ex: 160423737***" required>
-
-      <label for="department">Department</label>
-      <select id="department" required>
-        <option value="">Select Department</option>
-        <option value="CSE">CSE</option>
-        <option value="IT">IT</option>
-        <option value="AIML">AIML</option>
-        <option value="AIDS">AIDS</option>
-        <option value="ECE">ECE</option>
-        <option value="EEE">EEE</option>
-        <option value="MECH">MECH</option>
-      </select>
-
-      <label for="semester">Semester</label>
-      <select id="semester" required>
-        <option value="">Select Semester</option>
-        <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
-        <option value="4">4</option>
-        <option value="5">5</option>
-        <option value="6">6</option>
-        <option value="7">7</option>
-        <option value="8">8</option>
-      </select>
-
-      <label for="section">Section</label>
-      <select id="section" required>
-        <option value="">Select Section</option>
-        <option value="A">A</option>
-        <option value="B">B</option>
-        <option value="C">C</option>
-      </select>
-
-      <button type="submit">Register</button>
-    </form>
-  </div>
-
-  <script type="module" src="student-register.js"></script>
 </body>
 </html>
-
