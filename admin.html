@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin - MJ Attendance Portal</title>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      get,
+      set,
+      remove,
+      update
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCBKwrEO53ah1XbqBezByOPfwsiWgljkEY",
+      authDomain: "mjcet-attendance-db13b.firebaseapp.com",
+      databaseURL: "https://mjcet-attendance-db13b-default-rtdb.firebaseio.com",
+      projectId: "mjcet-attendance-db13b",
+      storageBucket: "mjcet-attendance-db13b.appspot.com",
+      messagingSenderId: "353462379631",
+      appId: "1:353462379631:web:31259dc4db9785c608d99a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Hardcoded admin credentials
+    const ADMIN_ID = "998877@admin";
+    const ADMIN_PASS = "778899";
+
+    window.onload = () => {
+      document.getElementById("loginForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const id = document.getElementById("adminId").value.trim();
+        const pass = document.getElementById("adminPass").value.trim();
+        if (id === ADMIN_ID && pass === ADMIN_PASS) {
+          document.getElementById("loginBox").style.display = "none";
+          document.getElementById("dashboard").style.display = "block";
+        } else {
+          document.getElementById("errorMsg").innerText = "Invalid credentials.";
+        }
+      });
+
+      // Firebase dashboard logic
+      const loadBtn = document.getElementById("loadBtn");
+      const promoteBtn = document.getElementById("promoteBtn");
+      const studentList = document.getElementById("studentList");
+
+      let currentRolls = [];
+      let currentSem = 0;
+      let currentDept = "";
+      let currentSec = "";
+
+      loadBtn.addEventListener("click", async () => {
+        const dept = document.getElementById("department").value;
+        const sem = document.getElementById("semester").value;
+        const sec = document.getElementById("section").value;
+
+        if (!dept || !sem || !sec) {
+          alert("Please select all fields.");
+          return;
+        }
+
+        const path = `students/${dept}/sem${sem}/${sec}`;
+        try {
+          const snap = await get(ref(db, path));
+          if (!snap.exists()) {
+            studentList.innerHTML = "<p>No students found in this section.</p>";
+            return;
+          }
+
+          const data = snap.val();
+          currentRolls = Object.keys(data);
+          currentSem = parseInt(sem);
+          currentDept = dept;
+          currentSec = sec;
+
+          studentList.innerHTML = `
+            <h3>Total Students: ${currentRolls.length}</h3>
+            <ul>${currentRolls.map(r => `<li>${r}</li>`).join("")}</ul>
+          `;
+        } catch (err) {
+          console.error("❌ Error loading students:", err);
+          alert("Failed to load students.");
+        }
+      });
+
+      promoteBtn.addEventListener("click", async () => {
+        if (!currentDept || !currentSem || !currentSec || currentRolls.length === 0) {
+          alert("❌ Load a valid section first.");
+          return;
+        }
+
+        const oldPath = `students/${currentDept}/sem${currentSem}/${currentSec}`;
+        const nextSem = currentSem + 1;
+        const newPath = `students/${currentDept}/sem${nextSem}/${currentSec}`;
+        const attendancePath = `attendance/${currentDept}/sem${currentSem}/${currentSec}`;
+
+        try {
+          const oldSnap = await get(ref(db, oldPath));
+          if (!oldSnap.exists()) {
+            alert("⚠️ Old semester data not found.");
+            return;
+          }
+
+          const updates = oldSnap.val();
+          await update(ref(db, newPath), updates);
+          await remove(ref(db, oldPath));
+          await remove(ref(db, attendancePath));
+
+          const trackerUpdates = {};
+          for (const roll of currentRolls) {
+            trackerUpdates[roll] = nextSem;
+          }
+          await update(ref(db, "semester_tracker"), trackerUpdates);
+
+          alert(`✅ Section promoted to Semester ${nextSem}. Attendance reset.`);
+          studentList.innerHTML = "";
+          currentRolls = [];
+
+        } catch (err) {
+          console.error("❌ Promotion Error:", err);
+          alert("Failed to promote students.");
+        }
+      });
+    };
+  </script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f6fa;
+      margin: 0;
+      padding: 20px;
+    }
+    h1, h2 {
+      color: #333;
+      text-align: center;
+    }
+    .login-box, .dashboard-box {
+      max-width: 500px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 10px 20px;
+      background: #28a745;
+      border: none;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    button#promoteBtn {
+      background: #007bff;
+    }
+    button:hover {
+      opacity: 0.9;
+    }
+    .error {
+      color: red;
+      text-align: center;
+      margin-top: -10px;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="loginBox" class="login-box">
+    <h2>Admin Login</h2>
+    <form id="loginForm">
+      <input type="text" id="adminId" placeholder="Login ID" required />
+      <input type="password" id="adminPass" placeholder="Password" required />
+      <button type="submit">Login</button>
+    </form>
+    <div class="error" id="errorMsg"></div>
+  </div>
+
+  <div id="dashboard" class="dashboard-box" style="display:none;">
+    <h2>Admin Dashboard</h2>
+    <label>Department:</label>
+    <select id="department">
+      <option value="">Select Department</option>
+      <option value="CSE">CSE</option>
+      <option value="IT">IT</option>
+      <option value="AIML">AIML</option>
+      <option value="AIDS">AIDS</option>
+      <option value="ECE">ECE</option>
+      <option value="EEE">EEE</option>
+      <option value="MECH">MECH</option>
+    </select>
+
+    <label>Semester:</label>
+    <select id="semester">
+      <option value="">Select Semester</option>
+      <option>1</option><option>2</option><option>3</option><option>4</option>
+      <option>5</option><option>6</option><option>7</option><option>8</option>
+    </select>
+
+    <label>Section:</label>
+    <select id="section">
+      <option value="">Select Section</option>
+      <option>A</option><option>B</option><option>C</option>
+    </select>
+
+    <button id="loadBtn">📥 Load Students</button>
+    <button id="promoteBtn">⬆️ Promote + Clear Attendance</button>
+
+    <div id="studentList" style="margin-top:20px;"></div>
+  </div>
+</body>
+</html>
