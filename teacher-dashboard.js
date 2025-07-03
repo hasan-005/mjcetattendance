@@ -1,3 +1,4 @@
+// ✅ IMPORTS
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
   getAuth,
@@ -12,7 +13,7 @@ import {
   update
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-// ✅ Firebase Config
+// ✅ FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyCBKwrEO53ah1XbqBezByOPfwsiWgljkEY",
   authDomain: "mjcet-attendance-db13b.firebaseapp.com",
@@ -27,7 +28,6 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
-// ✅ DOM Elements
 const loadBtn = document.getElementById("loadBtn");
 const submitBtn = document.getElementById("submitBtn");
 const studentTable = document.getElementById("studentTable");
@@ -38,10 +38,20 @@ const semester = document.getElementById("semester");
 const section = document.getElementById("section");
 const attendanceDate = document.getElementById("attendanceDate");
 const numHours = document.getElementById("numHours");
+const subjectDropdown = document.getElementById("subjectDropdown");
+const logoutBtn = document.getElementById("logoutBtn");
+const loggedFacultyName = document.getElementById("loggedFacultyName");
 
 let facultyName = "";
+let selectedSubject = "";
 
-// ✅ Get logged-in teacher's name
+logoutBtn.addEventListener("click", () => {
+  signOut(auth).then(() => {
+    alert("Logged out successfully.");
+    window.location.href = "teacher-login.html";
+  });
+});
+
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     const uid = user.uid;
@@ -50,11 +60,10 @@ onAuthStateChanged(auth, async (user) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
         facultyName = data.name || user.email;
-        document.getElementById("loggedFacultyName").innerText = facultyName;
       } else {
         facultyName = user.email;
-        document.getElementById("loggedFacultyName").innerText = facultyName;
       }
+      loggedFacultyName.textContent = facultyName;
     } catch (err) {
       console.error("Error fetching faculty info:", err);
     }
@@ -64,7 +73,47 @@ onAuthStateChanged(auth, async (user) => {
   }
 });
 
-// ✅ Load students
+async function loadSubjects() {
+  const dept = department.value;
+  const sem = semester.value;
+  const sec = section.value;
+
+  if (!dept || !sem || !sec) {
+    subjectDropdown.innerHTML = `<option value="">Select all fields above</option>`;
+    return;
+  }
+
+  try {
+    const snapshot = await get(ref(db, `subject_mapping/${dept}/sem${sem}/${sec}`));
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      const assignedSubjects = Object.entries(data).filter(
+        ([_, info]) => info.teacher === facultyName
+      );
+
+      if (assignedSubjects.length === 0) {
+        subjectDropdown.innerHTML = `<option value="">No subjects assigned to you</option>`;
+        return;
+      }
+
+      subjectDropdown.innerHTML = assignedSubjects.map(
+        ([subject, info]) => `<option value="${subject}|${sec}">${subject} (${info.type})</option>`
+      ).join("");
+
+      selectedSubject = assignedSubjects[0][0];
+    } else {
+      subjectDropdown.innerHTML = `<option value="">No subjects found</option>`;
+    }
+  } catch (err) {
+    console.error("Error loading subjects:", err);
+    subjectDropdown.innerHTML = `<option value="">Error loading subjects</option>`;
+  }
+}
+
+department.addEventListener("change", loadSubjects);
+semester.addEventListener("change", loadSubjects);
+section.addEventListener("change", loadSubjects);
+
 loadBtn.addEventListener("click", async () => {
   const dept = department.value;
   const sem = semester.value;
@@ -105,16 +154,22 @@ loadBtn.addEventListener("click", async () => {
   }
 });
 
-// ✅ Submit attendance
 submitBtn.addEventListener("click", async () => {
   const dept = department.value;
   const sem = semester.value;
   const sec = section.value;
   const selectedDate = attendanceDate.value;
   const hours = parseInt(numHours.value);
+  const dropdownValue = subjectDropdown.value;
 
-  if (!selectedDate || !hours || !facultyName) {
-    alert("Please enter date, hours and ensure faculty is logged in.");
+  if (!selectedDate || !hours || !facultyName || !dropdownValue) {
+    alert("Please enter all details and select subject.");
+    return;
+  }
+
+  const [subjectName, assignedSec] = dropdownValue.split("|");
+  if (assignedSec !== sec) {
+    alert(`This subject is assigned to Section ${assignedSec}. Please switch to that section.`);
     return;
   }
 
@@ -123,10 +178,12 @@ submitBtn.addEventListener("click", async () => {
 
   checkboxes.forEach((cb) => {
     const roll = cb.dataset.roll;
-    const studentPath = `attendance/${dept}/sem${sem}/${sec}/${selectedDate}/${roll}/${facultyName}`;
+    const studentPath = `attendance/${dept}/sem${sem}/${sec}/${selectedDate}/${roll}/${subjectName}`;
     updates[studentPath] = {
       status: cb.checked ? "present" : "absent",
-      hours: hours
+      hours: hours,
+      faculty: facultyName,
+      subject: subjectName
     };
   });
 
@@ -142,7 +199,6 @@ submitBtn.addEventListener("click", async () => {
   }
 });
 
-// ✅ Check Attendance (global scope for HTML)
 window.checkAttendance = async () => {
   const rollNo = document.getElementById("checkRoll").value.trim();
   const dept = department.value;
@@ -167,8 +223,8 @@ window.checkAttendance = async () => {
         const entry = data[date][rollNo];
         if (!entry) continue;
 
-        for (const faculty in entry) {
-          const record = entry[faculty];
+        for (const subject in entry) {
+          const record = entry[subject];
           if (record.status === "present") presentCount++;
           totalCount++;
         }
@@ -192,4 +248,3 @@ window.checkAttendance = async () => {
     resultDiv.innerHTML = "<span style='color: red;'>❌ Error fetching attendance.</span>";
   }
 };
-
