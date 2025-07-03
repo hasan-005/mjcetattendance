@@ -28,7 +28,38 @@
     const db = getDatabase(app);
 
     window.onload = () => {
-      // Student Panel
+      const loginSection = document.getElementById("loginSection");
+      const dashboardSection = document.getElementById("dashboardSection");
+      const loginForm = document.getElementById("loginForm");
+      const logoutBtn = document.getElementById("logoutBtn");
+      const loginMsg = document.getElementById("loginMsg");
+
+      loginSection.style.display = "block";
+      dashboardSection.style.display = "none";
+
+      loginForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const email = document.getElementById("adminEmail").value;
+        const password = document.getElementById("adminPassword").value;
+
+        if (email === "9908446172@admin.in" && password === "111222333444") {
+          loginSection.style.display = "none";
+          dashboardSection.style.display = "flex";
+          loginMsg.textContent = "";
+        } else {
+          loginMsg.textContent = "❌ Incorrect email or password";
+          loginMsg.style.color = "red";
+        }
+      });
+
+      logoutBtn.addEventListener("click", () => {
+        loginSection.style.display = "block";
+        dashboardSection.style.display = "none";
+        document.getElementById("adminEmail").value = "";
+        document.getElementById("adminPassword").value = "";
+      });
+
+      // STUDENT PANEL
       const studentDept = document.getElementById("studentDept");
       const studentSem = document.getElementById("studentSem");
       const studentSec = document.getElementById("studentSec");
@@ -95,7 +126,7 @@
             await update(ref(db, newPath), snap.val());
             await remove(ref(db, oldPath));
             await remove(ref(db, attendancePath));
-            await remove(ref(db, subjectPath)); // Auto-clear subjects
+            await remove(ref(db, subjectPath));
             const updates = {};
             currentRolls.forEach(r => updates[r] = nextSem);
             await update(ref(db, "semester_tracker"), updates);
@@ -110,7 +141,7 @@
         }
       });
 
-      // Teacher Panel
+      // TEACHER PANEL
       const teacherDept = document.getElementById("teacherDept");
       const teacherSem = document.getElementById("teacherSem");
       const teacherSec = document.getElementById("teacherSec");
@@ -200,10 +231,8 @@
       font-family: Arial, sans-serif;
       background: #121212;
       color: #f0f0f0;
+      margin: 0;
       padding: 20px;
-      display: flex;
-      flex-direction: row;
-      gap: 30px;
     }
     .panel {
       background: #1e1e1e;
@@ -212,110 +241,92 @@
       width: 48%;
       box-shadow: 0 0 10px rgba(255,255,255,0.1);
     }
-    h2 {
-      text-align: center;
-      color: #90caf9;
-    }
-    label {
-      font-weight: bold;
-      color: #e0e0e0;
-    }
+    h2 { text-align: center; color: #90caf9; }
+    label { font-weight: bold; color: #e0e0e0; }
     input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #333;
-      border-radius: 5px;
-      background: #2a2a2a;
-      color: #ffffff;
+      width: 100%; padding: 10px; margin: 10px 0;
+      border: 1px solid #333; border-radius: 5px;
+      background: #2a2a2a; color: #fff;
     }
-    button {
-      background: #1976d2;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    #assignMsg, #clearMsg {
-      margin-top: 10px;
-      text-align: center;
-    }
-    ul {
-      padding-left: 20px;
-    }
+    button { background: #1976d2; cursor: pointer; }
+    #assignMsg, #clearMsg, #loginMsg { margin-top: 10px; text-align: center; }
+    ul { padding-left: 20px; }
+    #dashboardSection { display: none; flex-direction: row; gap: 30px; }
+    #loginSection { max-width: 400px; margin: auto; }
   </style>
 </head>
 
 <body>
-  <div class="panel">
-    <h2>Student Management</h2>
-    <label>Department</label>
-    <select id="studentDept">
-      <option value="">Select</option>
-      <option value="CSE">CSE</option>
-      <option value="IT">IT</option>
-      <option value="AIML">AIML</option>
-      <option value="AIDS">AIDS</option>
-      <option value="MECH">MECH</option>
-      <option value="CIVIL">CIVIL</option>
-      <option value="ECE">ECE</option>
-      <option value="EEE">EEE</option>
-    </select>
-    <label>Semester</label>
-    <select id="studentSem">
-      <option value="">Select</option>
-      <option>1</option><option>2</option><option>3</option><option>4</option>
-      <option>5</option><option>6</option><option>7</option><option>8</option>
-    </select>
-    <label>Section</label>
-    <select id="studentSec">
-      <option value="">Select</option>
-      <option>A</option><option>B</option>
-    </select>
-    <button id="loadStudentsBtn">📥 Load Students</button>
-    <button id="promoteBtn">⬆️ Promote / Clear 8th Sem</button>
-    <div id="studentList"></div>
+
+  <div id="loginSection">
+    <h2>Admin Login</h2>
+    <form id="loginForm">
+      <label>Email</label>
+      <input type="email" id="adminEmail" required placeholder="enter user name" />
+      <label>Password</label>
+      <input type="password" id="adminPassword" required placeholder="enter pass" />
+      <button type="submit">🔐 Login</button>
+    </form>
+    <div id="loginMsg"></div>
   </div>
 
-  <div class="panel">
-    <h2>Assign Subjects</h2>
-    <label>Department</label>
-    <select id="teacherDept">
-      <option value="">Select</option>
-      <option value="CSE">CSE</option>
-      <option value="IT">IT</option>
-      <option value="AIML">AIML</option>
-      <option value="AIDS">AIDS</option>
-      <option value="MECH">MECH</option>
-      <option value="CIVIL">CIVIL</option>
-      <option value="ECE">ECE</option>
-      <option value="EEE">EEE</option>
-    </select>
-    <button id="loadTeachersBtn">👥 Load Teachers</button>
-    <select id="teacherDropdown">
-      <option value="">Select Teacher</option>
-    </select>
-    <label>Semester</label>
-    <select id="teacherSem">
-      <option value="">Select</option>
-      <option>1</option><option>2</option><option>3</option><option>4</option>
-      <option>5</option><option>6</option><option>7</option><option>8</option>
-    </select>
-    <label>Section</label>
-    <select id="teacherSec">
-      <option value="">Select</option>
-      <option>A</option><option>B</option>
-    </select>
-    <input type="text" id="subjectName" placeholder="Subject (e.g., JAVA)" />
-    <select id="subjectType">
-      <option value="">Select Type</option>
-      <option value="Theory">Theory</option>
-      <option value="Lab">Lab</option>
-    </select>
-    <button id="assignBtn">🎓 Assign Subject</button>
-    <div id="assignMsg"></div>
-    <button id="clearSubjectsBtn">🗑️ Clear All Subject Assignments</button>
-    <div id="clearMsg"></div>
+  <div id="dashboardSection">
+    <div class="panel">
+      <h2>Student Management</h2>
+      <label>Department</label>
+      <select id="studentDept">
+        <option value="">Select</option>
+        <option value="CSE">CSE</option><option value="IT">IT</option>
+        <option value="AIML">AIML</option><option value="AIDS">AIDS</option>
+        <option value="MECH">MECH</option><option value="CIVIL">CIVIL</option>
+        <option value="ECE">ECE</option><option value="EEE">EEE</option>
+      </select>
+      <label>Semester</label>
+      <select id="studentSem">
+        <option value="">Select</option>
+        <option>1</option><option>2</option><option>3</option><option>4</option>
+        <option>5</option><option>6</option><option>7</option><option>8</option>
+      </select>
+      <label>Section</label>
+      <select id="studentSec">
+        <option value="">Select</option><option>A</option><option>B</option>
+      </select>
+      <button id="loadStudentsBtn">📥 Load Students</button>
+      <button id="promoteBtn">⬆️ Promote / Clear 8th Sem</button>
+      <div id="studentList"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Assign Subjects</h2>
+      <label>Department</label>
+      <select id="teacherDept">
+        <option value="">Select</option>
+        <option value="CSE">CSE</option><option value="IT">IT</option>
+        <option value="AIML">AIML</option><option value="AIDS">AIDS</option>
+        <option value="MECH">MECH</option><option value="CIVIL">CIVIL</option>
+        <option value="ECE">ECE</option><option value="EEE">EEE</option>
+      </select>
+      <button id="loadTeachersBtn">👥 Load Teachers</button>
+      <select id="teacherDropdown"><option>Select Teacher</option></select>
+      <label>Semester</label>
+      <select id="teacherSem">
+        <option value="">Select</option>
+        <option>1</option><option>2</option><option>3</option><option>4</option>
+        <option>5</option><option>6</option><option>7</option><option>8</option>
+      </select>
+      <label>Section</label>
+      <select id="teacherSec"><option>A</option><option>B</option></select>
+      <input type="text" id="subjectName" placeholder="Subject (e.g., JAVA)" />
+      <select id="subjectType"><option value="">Select</option><option>Theory</option><option>Lab</option></select>
+      <button id="assignBtn">🎓 Assign Subject</button>
+      <div id="assignMsg"></div>
+      <button id="clearSubjectsBtn">🗑️ Clear All Subject Assignments</button>
+      <div id="clearMsg"></div>
+      <button id="logoutBtn">🚪 Logout</button>
+    </div>
   </div>
+
 </body>
 </html>
+
 
