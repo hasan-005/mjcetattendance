@@ -22,20 +22,16 @@ const firebaseConfig = {
   appId: "1:353462379631:web:31259dc4db9785c608d99a"
 };
 
-// Init Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
-// Logout
 document.getElementById("logoutBtn").addEventListener("click", () => {
   signOut(auth).then(() => window.location.href = "student-login.html");
 });
 
-// Globals
 let globalDept = "", globalSem = "", globalSec = "", globalRoll = "";
 
-// Auth
 onAuthStateChanged(auth, async (user) => {
   if (!user) return window.location.href = "student-login.html";
 
@@ -74,6 +70,16 @@ onAuthStateChanged(auth, async (user) => {
   document.getElementById("studentSem").innerText = sem;
   document.getElementById("studentSec").innerText = sec.toUpperCase();
 
+  const subjectMappingSnap = await get(ref(db, `subject_mapping/${dept}/sem${sem}/${sec}`));
+  const subjectMap = {};
+  if (subjectMappingSnap.exists()) {
+    const mapData = subjectMappingSnap.val();
+    for (const subject in mapData) {
+      const teacher = mapData[subject].teacher;
+      subjectMap[teacher] = subject;
+    }
+  }
+
   const attendancePath = `attendance/${dept}/sem${sem}/${sec}`;
   const snapshot = await get(ref(db, attendancePath));
   const facultyWise = {};
@@ -87,13 +93,15 @@ onAuthStateChanged(auth, async (user) => {
 
       for (const faculty in rollData) {
         const rec = rollData[faculty];
-        if (!facultyWise[faculty]) {
-          facultyWise[faculty] = { attended: 0, total: 0 };
+        const subjectName = subjectMap[faculty] || faculty;
+
+        if (!facultyWise[subjectName]) {
+          facultyWise[subjectName] = { attended: 0, total: 0 };
         }
 
-        facultyWise[faculty].total += rec.hours;
+        facultyWise[subjectName].total += rec.hours;
         if (rec.status === "present") {
-          facultyWise[faculty].attended += rec.hours;
+          facultyWise[subjectName].attended += rec.hours;
           attendedHours += rec.hours;
         }
 
@@ -108,21 +116,21 @@ onAuthStateChanged(auth, async (user) => {
   const labels = [];
   const dataValues = [];
 
-  for (const faculty in facultyWise) {
-    const f = facultyWise[faculty];
+  for (const subject in facultyWise) {
+    const f = facultyWise[subject];
     const percent = f.total > 0
       ? ((f.attended / f.total) * 100).toFixed(2) + "%"
       : "0%";
 
     table.innerHTML += `
       <tr>
-        <td>${faculty}</td>
+        <td>${subject}</td>
         <td>${f.attended}</td>
         <td>${f.total}</td>
         <td>${percent}</td>
       </tr>`;
 
-    labels.push(faculty);
+    labels.push(subject);
     dataValues.push(((f.attended / f.total) * 100).toFixed(2));
   }
 
@@ -132,7 +140,6 @@ onAuthStateChanged(auth, async (user) => {
   drawBarChart(labels, dataValues);
 });
 
-// Draw bar chart using Chart.js
 function drawBarChart(labels, dataValues) {
   const ctx = document.getElementById('attendanceBarChart').getContext('2d');
   new Chart(ctx, {
@@ -184,12 +191,10 @@ function drawBarChart(labels, dataValues) {
   });
 }
 
-// Edit Profile
 window.updateProfile = () => {
   alert("Update logic to be added here if needed.");
 };
 
-// Change Password
 window.changePassword = () => {
   const newPass = document.getElementById("newPassword").value;
   const user = auth.currentUser;
@@ -202,7 +207,6 @@ window.changePassword = () => {
   }
 };
 
-// Calendar View
 window.loadAttendanceByDate = async () => {
   const selectedDate = document.getElementById("calendarDate").value;
   const container = document.getElementById("calendarAttendanceInfo");
@@ -210,6 +214,16 @@ window.loadAttendanceByDate = async () => {
   if (!selectedDate || !globalRoll || !globalDept || !globalSem || !globalSec) {
     container.innerHTML = "<p>Please wait or check login data.</p>";
     return;
+  }
+
+  const subjectMappingSnap = await get(ref(db, `subject_mapping/${globalDept}/sem${globalSem}/${globalSec}`));
+  const subjectMap = {};
+  if (subjectMappingSnap.exists()) {
+    const mapData = subjectMappingSnap.val();
+    for (const subject in mapData) {
+      const teacher = mapData[subject].teacher;
+      subjectMap[teacher] = subject;
+    }
   }
 
   const path = `attendance/${globalDept}/sem${globalSem}/${globalSec}/${selectedDate}/${globalRoll}`;
@@ -222,13 +236,14 @@ window.loadAttendanceByDate = async () => {
 
   const data = snapshot.val();
   let html = `<table>
-                <tr><th>Name of Faculty</th><th>Status</th><th>Total Hours</th></tr>`;
+                <tr><th>Subject</th><th>Status</th><th>Total Hours</th></tr>`;
 
   for (const faculty in data) {
     const rec = data[faculty];
+    const subjectName = subjectMap[faculty] || faculty;
     html += `
       <tr>
-        <td>${faculty}</td>
+        <td>${subjectName}</td>
         <td style="color:${rec.status === "present" ? "#4caf50" : "#ff4d4d"}">
           ${rec.status === "present" ? "Present" : "Absent"}
         </td>
@@ -239,3 +254,4 @@ window.loadAttendanceByDate = async () => {
   html += "</table>";
   container.innerHTML = html;
 };
+
