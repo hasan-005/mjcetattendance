@@ -1,8 +1,6 @@
-// teacher-register.js
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 // Firebase config
 const firebaseConfig = {
@@ -19,8 +17,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-// Secret access code for teacher registration
-const TEACHER_ACCESS_CODE = "556699"; // Change this as needed
+const TEACHER_ACCESS_CODE = "556699";
 
 document.getElementById("registerForm").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -28,11 +25,11 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
   const name = document.getElementById("name").value.trim();
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
-  const department = document.getElementById("department").value;
+  const department = document.getElementById("department").value.trim();
   const teacherCode = document.getElementById("teacherCode").value.trim();
 
-  if (!department) {
-    alert("Please select a department.");
+  if (!name || !email || !password || !department || !teacherCode) {
+    alert("All fields are required.");
     return;
   }
 
@@ -45,20 +42,29 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
 
+    // 1. Store full teacher profile in /users
     await set(ref(db, `users/${uid}`), {
-      name: name,
-      email: email,
-      department: department,
+      name,
+      email,
+      department,
       role: "teacher"
     });
 
-    alert("Registration successful!");
-    // Store session info if needed
+    // 2. Store name-only under /teachers/{department}/teacherN
+    const deptRef = ref(db, `teachers/${department}`);
+    const snapshot = await get(deptRef);
+    const teacherCount = snapshot.exists() ? Object.keys(snapshot.val()).length + 1 : 1;
+
+    await set(ref(db, `teachers/${department}/teacher${teacherCount}`), name);
+
+    // 3. Save session info and redirect
     localStorage.setItem("uid", uid);
     localStorage.setItem("role", "teacher");
 
+    alert("Teacher registered successfully!");
     window.location.href = "teacher-dashboard.html";
   } catch (error) {
     alert("Error: " + error.message);
   }
 });
+
