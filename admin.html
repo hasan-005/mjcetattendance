@@ -28,38 +28,6 @@
     const db = getDatabase(app);
 
     window.onload = () => {
-      const loginSection = document.getElementById("loginSection");
-      const dashboardSection = document.getElementById("dashboardSection");
-      const loginForm = document.getElementById("loginForm");
-      const logoutBtn = document.getElementById("logoutBtn");
-      const loginMsg = document.getElementById("loginMsg");
-
-      loginSection.style.display = "block";
-      dashboardSection.style.display = "none";
-
-      loginForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const email = document.getElementById("adminEmail").value;
-        const password = document.getElementById("adminPassword").value;
-
-        if (email === "9908446172@admin.in" && password === "111222333444") {
-          loginSection.style.display = "none";
-          dashboardSection.style.display = "flex";
-          loginMsg.textContent = "";
-        } else {
-          loginMsg.textContent = "❌ Incorrect email or password";
-          loginMsg.style.color = "red";
-        }
-      });
-
-      logoutBtn.addEventListener("click", () => {
-        loginSection.style.display = "block";
-        dashboardSection.style.display = "none";
-        document.getElementById("adminEmail").value = "";
-        document.getElementById("adminPassword").value = "";
-      });
-
-      // STUDENT PANEL
       const studentDept = document.getElementById("studentDept");
       const studentSem = document.getElementById("studentSem");
       const studentSec = document.getElementById("studentSec");
@@ -249,27 +217,13 @@
       background: #2a2a2a; color: #fff;
     }
     button { background: #1976d2; cursor: pointer; }
-    #assignMsg, #clearMsg, #loginMsg { margin-top: 10px; text-align: center; }
+    #assignMsg, #clearMsg { margin-top: 10px; text-align: center; }
     ul { padding-left: 20px; }
-    #dashboardSection { display: none; flex-direction: row; gap: 30px; }
-    #loginSection { max-width: 400px; margin: auto; }
+    #dashboardSection { display: flex; flex-direction: row; gap: 30px; }
   </style>
 </head>
 
 <body>
-
-  <div id="loginSection">
-    <h2>Admin Login</h2>
-    <form id="loginForm">
-      <label>Email</label>
-      <input type="email" id="adminEmail" required placeholder="enter user name" />
-      <label>Password</label>
-      <input type="password" id="adminPassword" required placeholder="enter pass" />
-      <button type="submit">🔐 Login</button>
-    </form>
-    <div id="loginMsg"></div>
-  </div>
-
   <div id="dashboardSection">
     <div class="panel">
       <h2>Student Management</h2>
@@ -322,10 +276,8 @@
       <div id="assignMsg"></div>
       <button id="clearSubjectsBtn">🗑️ Clear All Subject Assignments</button>
       <div id="clearMsg"></div>
-      <button id="logoutBtn">🚪 Logout</button>
     </div>
   </div>
-
 </body>
 </html>
 
