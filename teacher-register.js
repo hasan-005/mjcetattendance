@@ -17,8 +17,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-const TEACHER_ACCESS_CODE = "556699";
-
 document.getElementById("registerForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -33,16 +31,26 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
     return;
   }
 
-  if (teacherCode !== TEACHER_ACCESS_CODE) {
-    alert("Invalid Teacher Access Code!");
-    return;
-  }
-
   try {
+    // Fetch teacher access code from Firebase
+    const accessCodeRef = ref(db, "accessCode/teacher");
+    const snapshot = await get(accessCodeRef);
+    const storedAccessCode = snapshot.exists() ? snapshot.val() : null;
+
+    console.log("Entered Code:", teacherCode);
+    console.log("Code from DB:", storedAccessCode);
+
+    // Convert both to string and compare
+    if (String(teacherCode) !== String(storedAccessCode)) {
+      alert("Invalid Teacher Access Code!");
+      return;
+    }
+
+    // Create new user in Firebase Authentication
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const uid = userCredential.user.uid;
 
-    // 1. Store full teacher profile in /users
+    // Save full profile in /users
     await set(ref(db, `users/${uid}`), {
       name,
       email,
@@ -50,20 +58,21 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
       role: "teacher"
     });
 
-    // 2. Store name-only under /teachers/{department}/teacherN
+    // Save under /teachers/{department}/teacherN
     const deptRef = ref(db, `teachers/${department}`);
-    const snapshot = await get(deptRef);
-    const teacherCount = snapshot.exists() ? Object.keys(snapshot.val()).length + 1 : 1;
+    const deptSnapshot = await get(deptRef);
+    const teacherCount = deptSnapshot.exists() ? Object.keys(deptSnapshot.val()).length + 1 : 1;
 
     await set(ref(db, `teachers/${department}/teacher${teacherCount}`), name);
 
-    // 3. Save session info and redirect
+    // Save session and redirect
     localStorage.setItem("uid", uid);
     localStorage.setItem("role", "teacher");
 
     alert("Teacher registered successfully!");
     window.location.href = "teacher-dashboard.html";
   } catch (error) {
+    console.error("Registration Error:", error);
     alert("Error: " + error.message);
   }
 });
