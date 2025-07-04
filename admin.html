@@ -28,6 +28,7 @@
     const db = getDatabase(app);
 
     window.onload = () => {
+      // ---------- STUDENT PANEL ----------
       const studentDept = document.getElementById("studentDept");
       const studentSem = document.getElementById("studentSem");
       const studentSec = document.getElementById("studentSec");
@@ -109,10 +110,11 @@
         }
       });
 
-      // TEACHER PANEL
+      // ---------- TEACHER PANEL ----------
       const teacherDept = document.getElementById("teacherDept");
       const teacherSem = document.getElementById("teacherSem");
       const teacherSec = document.getElementById("teacherSec");
+      const targetDept = document.getElementById("targetDept");
       const loadTeachersBtn = document.getElementById("loadTeachersBtn");
       const teacherDropdown = document.getElementById("teacherDropdown");
       const subjectName = document.getElementById("subjectName");
@@ -144,33 +146,38 @@
       });
 
       assignBtn.addEventListener("click", async () => {
-        const dept = teacherDept.value;
+        const homeDept = teacherDept.value;
+        const target = targetDept.value || homeDept; // Default to home dept
         const sem = teacherSem.value;
         const sec = teacherSec.value;
         const teacher = teacherDropdown.value;
         const subject = subjectName.value.trim();
         const type = subjectType.value;
 
-        if (!dept || !sem || !sec || !teacher || !subject || !type) {
+        if (!homeDept || !sem || !sec || !teacher || !subject || !type) {
           assignMsg.innerText = "Fill all fields";
           assignMsg.style.color = "red";
           return;
         }
 
-        const path = `subject_mapping/${dept}/sem${sem}/${sec}/${subject}`;
+        const path = `subject_mapping/${target}/sem${sem}/${sec}/${subject}`;
         try {
-          await set(ref(db, path), { teacher, type });
-          assignMsg.innerText = `Assigned ${subject} to ${teacher}`;
+          await set(ref(db, path), {
+            teacher,
+            type,
+            assignedFrom: homeDept
+          });
+          assignMsg.innerText = `✅ Assigned ${subject} to ${teacher}`;
           assignMsg.style.color = "lightgreen";
         } catch (err) {
           console.error(err);
-          assignMsg.innerText = "Assignment failed";
+          assignMsg.innerText = "❌ Assignment failed";
           assignMsg.style.color = "red";
         }
       });
 
       clearSubjectsBtn.addEventListener("click", async () => {
-        const dept = teacherDept.value;
+        const dept = targetDept.value || teacherDept.value;
         const sem = teacherSem.value;
         const sec = teacherSec.value;
 
@@ -212,19 +219,71 @@
     h2 { text-align: center; color: #90caf9; }
     label { font-weight: bold; color: #e0e0e0; }
     input, select, button {
-      width: 100%; padding: 10px; margin: 10px 0;
-      border: 1px solid #333; border-radius: 5px;
-      background: #2a2a2a; color: #fff;
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #333;
+      border-radius: 5px;
+      background: #2a2a2a;
+      color: #fff;
     }
-    button { background: #1976d2; cursor: pointer; }
+    button {
+      background: #1976d2;
+      cursor: pointer;
+    }
     #assignMsg, #clearMsg { margin-top: 10px; text-align: center; }
     ul { padding-left: 20px; }
-    #dashboardSection { display: flex; flex-direction: row; gap: 30px; }
+    #dashboardSection {
+      display: flex;
+      flex-direction: row;
+      gap: 30px;
+      justify-content: space-between;
+    }
   </style>
 </head>
 
 <body>
   <div id="dashboardSection">
+    <!-- Left: Teacher Panel -->
+    <div class="panel">
+      <h2>Assign Subjects</h2>
+      <label>Teacher Department</label>
+      <select id="teacherDept">
+        <option value="">Select</option>
+        <option value="CSE">CSE</option><option value="IT">IT</option>
+        <option value="AIML">AIML</option><option value="AIDS">AIDS</option>
+        <option value="MECH">MECH</option><option value="CIVIL">CIVIL</option>
+        <option value="ECE">ECE</option><option value="EEE">EEE</option>
+      </select>
+
+      <button id="loadTeachersBtn">👥 Load Teachers</button>
+      <select id="teacherDropdown"><option>Select Teacher</option></select>
+
+      <label>Teaching Department (if different)</label>
+      <select id="targetDept">
+        <option value="">Same as Teacher Dept</option>
+        <option value="CSE">CSE</option><option value="IT">IT</option>
+        <option value="AIML">AIML</option><option value="AIDS">AIDS</option>
+        <option value="MECH">MECH</option><option value="CIVIL">CIVIL</option>
+        <option value="ECE">ECE</option><option value="EEE">EEE</option>
+      </select>
+
+      <label>Semester</label>
+      <select id="teacherSem"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select>
+
+      <label>Section</label>
+      <select id="teacherSec"><option>A</option><option>B</option></select>
+
+      <input type="text" id="subjectName" placeholder="Subject (e.g., JAVA)" />
+      <select id="subjectType"><option value="">Select</option><option>Theory</option><option>Lab</option></select>
+
+      <button id="assignBtn">🎓 Assign Subject</button>
+      <div id="assignMsg"></div>
+      <button id="clearSubjectsBtn">🗑️ Clear All Subject Assignments</button>
+      <div id="clearMsg"></div>
+    </div>
+
+    <!-- Right: Student Panel -->
     <div class="panel">
       <h2>Student Management</h2>
       <label>Department</label>
@@ -235,50 +294,20 @@
         <option value="MECH">MECH</option><option value="CIVIL">CIVIL</option>
         <option value="ECE">ECE</option><option value="EEE">EEE</option>
       </select>
+
       <label>Semester</label>
-      <select id="studentSem">
-        <option value="">Select</option>
-        <option>1</option><option>2</option><option>3</option><option>4</option>
-        <option>5</option><option>6</option><option>7</option><option>8</option>
-      </select>
+      <select id="studentSem"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select>
+
       <label>Section</label>
-      <select id="studentSec">
-        <option value="">Select</option><option>A</option><option>B</option>
-      </select>
+      <select id="studentSec"><option>A</option><option>B</option></select>
+
       <button id="loadStudentsBtn">📥 Load Students</button>
       <button id="promoteBtn">⬆️ Promote / Clear 8th Sem</button>
       <div id="studentList"></div>
     </div>
-
-    <div class="panel">
-      <h2>Assign Subjects</h2>
-      <label>Department</label>
-      <select id="teacherDept">
-        <option value="">Select</option>
-        <option value="CSE">CSE</option><option value="IT">IT</option>
-        <option value="AIML">AIML</option><option value="AIDS">AIDS</option>
-        <option value="MECH">MECH</option><option value="CIVIL">CIVIL</option>
-        <option value="ECE">ECE</option><option value="EEE">EEE</option>
-      </select>
-      <button id="loadTeachersBtn">👥 Load Teachers</button>
-      <select id="teacherDropdown"><option>Select Teacher</option></select>
-      <label>Semester</label>
-      <select id="teacherSem">
-        <option value="">Select</option>
-        <option>1</option><option>2</option><option>3</option><option>4</option>
-        <option>5</option><option>6</option><option>7</option><option>8</option>
-      </select>
-      <label>Section</label>
-      <select id="teacherSec"><option>A</option><option>B</option></select>
-      <input type="text" id="subjectName" placeholder="Subject (e.g., JAVA)" />
-      <select id="subjectType"><option value="">Select</option><option>Theory</option><option>Lab</option></select>
-      <button id="assignBtn">🎓 Assign Subject</button>
-      <div id="assignMsg"></div>
-      <button id="clearSubjectsBtn">🗑️ Clear All Subject Assignments</button>
-      <div id="clearMsg"></div>
-    </div>
   </div>
 </body>
 </html>
+
 
 
